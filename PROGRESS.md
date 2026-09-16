@@ -14,9 +14,11 @@ Qwen3-8B Base
 Auxiliary study: Fresh DAPO is completed and evaluated; the corrected
 assistant-only DAPO experiment remains pending.
 
-All methods use the same strict multi-turn BM25 environment for training and
-the same Natural Bridge-Hard 200-example held-out protocol. Public conclusions
-remain recipe-level unless a dedicated ablation isolates one component.
+All methods use the same strict multi-turn BM25 environment for training. The
+four-policy table uses the Natural Bridge-Hard 200-example evaluation protocol;
+Vanilla GRPO and Reward v2 have additionally completed an aligned 1,000-example
+evaluation. Public conclusions remain recipe-level unless a dedicated ablation
+isolates one component.
 
 ## Completed Evidence
 
@@ -96,6 +98,21 @@ retrieval is preserved and wasted retrieval decreases. It still underperforms
 task-only GRPO and retrieves less useful evidence, so it is not accepted as a
 Pareto improvement over the task-only baseline.
 
+### Expanded Vanilla GRPO vs Reward v2 Evaluation
+
+Natural Bridge-Hard, 1,000 aligned examples:
+
+| Method | EM | F1 | Searches | Multi-search | Support-hit | No-new-support |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Vanilla GRPO | 48.3% | 62.03% | 1.959 | 84.2% | 1.407 | 0.552 |
+| Reward v2 | 43.6% | 56.99% | 1.638 | 59.9% | 1.239 | 0.399 |
+
+The paired Vanilla-minus-Reward-v2 difference is +4.70 EM points (95% CI
+[+2.80, +6.70]) and +5.03 F1 points (95% CI [+3.12, +7.00]), using 20,000
+paired bootstrap resamples. The larger evaluation confirms that Reward v2
+reduces absolute retrieval cost but does not preserve the answer quality or
+support-hit count of task-only GRPO.
+
 ### Reward and Infrastructure Validation
 
 - Process-aware reward implemented as
@@ -116,13 +133,13 @@ corrected ablation is finished and evaluated.
 
 ## Next Actions
 
-1. Compare Reward v2 and task-only GRPO failures to identify where reduced
-   retrieval changes answer quality.
-2. Complete and evaluate corrected assistant-only DAPO when resources permit.
-3. Compare task quality, protocol reliability, search distribution,
-   useful/wasted retrieval, and generated length.
-4. Decide whether a revised process reward or component-level DAPO ablation is
-   justified.
+1. Add a MuSiQue local-corpus adapter and stratified 2/3/4-hop evaluation
+   without changing the action protocol or retrieval backend.
+2. Evaluate Base, Vanilla GRPO, and Reward v2 zero-shot by required hop depth
+   before any MuSiQue training.
+3. Only after the local-corpus study, introduce a shared cached retrieval index
+   so hop depth and corpus scale remain separately attributable.
+4. Complete and evaluate corrected assistant-only DAPO when resources permit.
 
 ## Stable References
 

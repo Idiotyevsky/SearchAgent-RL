@@ -1,8 +1,10 @@
 # SearchAgent-RL Experimental Results
 
-All completed rows below come from stored trajectory artifacts. Every policy is
-evaluated on the same Natural Bridge-Hard set: 200 official HotpotQA validation
-rows with `type=bridge`, `level=hard`, and no strict candidate filter.
+All completed rows below come from stored trajectory artifacts. The primary
+four-policy comparison uses the same Natural Bridge-Hard set: 200 official
+HotpotQA validation rows with `type=bridge`, `level=hard`, and no strict
+candidate filter. A separate 1,000-example comparison checks whether the main
+Vanilla GRPO versus Reward v2 conclusion persists at larger scale.
 
 ## Evaluation Comparison
 
@@ -40,6 +42,46 @@ SHA-256: `trajectories.jsonl`
 `2d40f2dc8364f0abbfd0936b4ada3392913fd08ee169ec8630aa43cd709e7471`, and
 `run_config.json`
 `b2e09d89f90a262cdb8b79dddfe5372dd6ed2321f3e6b5298a3df26a75635a2f`.
+
+## Expanded 1,000-example Evaluation
+
+Vanilla GRPO and Reward v2 were re-evaluated on the first 1,000 examples of the
+full 5,918-example Natural Bridge-Hard pool. The original 200-example set is an
+exact prefix of this larger set. Both policies used the same sampling seed and
+inference settings, and the trajectory IDs align one-to-one.
+
+Dataset SHA-256:
+`46f5529eabb6a100bc9c2b0409d58ca7a99fcc6b30a27c5b6cac5a2ce7aa6234`.
+
+| Method | EM | F1 | Completion | Invalid action | Searches | Multi-search | Support-hit | No-new-support | Support-hit rate |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Vanilla GRPO, step 62 | **48.3%** | **62.03%** | 97.6% | 0.81% | 1.959 | **84.2%** | **1.407** | 0.552 | 71.82% |
+| Reward v2, step 62 | 43.6% | 56.99% | **99.1%** | **0.23%** | **1.638** | 59.9% | 1.239 | **0.399** | **75.64%** |
+
+Paired bootstrap differences use 20,000 resamples over the 1,000 aligned
+examples and report Vanilla GRPO minus Reward v2:
+
+| Metric | Difference | Paired bootstrap 95% CI |
+| --- | ---: | ---: |
+| EM | +4.70 pp | [+2.80, +6.70] pp |
+| F1 | +5.03 pp | [+3.12, +7.00] pp |
+| Executed searches | +0.321 | [+0.288, +0.355] |
+| Support-hit searches | +0.168 | [+0.141, +0.196] |
+| No-new-support searches | +0.153 | [+0.119, +0.186] |
+| Multi-search | +24.3 pp | [+21.6, +27.1] pp |
+
+The larger evaluation confirms the trade-off seen on 200 examples. Reward v2
+produces a more conservative and protocol-stable policy, with fewer searches
+and fewer no-new-support calls. Vanilla GRPO retains materially higher answer
+quality and also retrieves more annotated supporting evidence. Reward v2 is
+therefore not a Pareto improvement over the task-only objective.
+
+Artifact SHA-256:
+
+- Vanilla GRPO trajectories:
+  `c866cd9ee02759de124488313c79bbf887801614205c74e11c4169a8151a2be4`;
+- Reward v2 trajectories:
+  `cc8329a01b349f23fd2c9cf056398430e179827b1d5aaa6d0213cf5a10d37de2`.
 
 ## Interpretation
 

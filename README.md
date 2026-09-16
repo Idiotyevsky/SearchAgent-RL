@@ -451,6 +451,22 @@ therefore needs to be evaluated jointly with final task quality.
 Reward v2 reduces no-new-support retrieval relative to Composite v1 while
 maintaining similar answer quality, but it still trails task-only GRPO on EM/F1.
 
+### Larger-scale checkpoint comparison
+
+To test whether that conclusion depends on the original 200-example set, the
+two principal step-62 checkpoints were also evaluated on 1,000 aligned Natural
+Bridge-Hard examples:
+
+| Method | EM | F1 | Searches | Multi-search | Support-hit | No-new-support |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| **Vanilla GRPO** | **48.3%** | **62.03%** | 1.959 | **84.2%** | **1.407** | 0.552 |
+| Reward v2 | 43.6% | 56.99% | **1.638** | 59.9% | 1.239 | **0.399** |
+
+Paired bootstrap intervals confirm the answer-quality gap: Vanilla GRPO leads
+by **4.70 EM points** (95% CI: +2.80 to +6.70) and **5.03 F1 points** (95% CI:
++3.12 to +7.00). Reward v2 reduces absolute retrieval cost, but also retrieves
+less annotated supporting evidence and remains weaker on answer quality.
+
 Complete experiment provenance and artifact hashes are recorded in
 [`experiments/results.md`](experiments/results.md).
 
