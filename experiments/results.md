@@ -83,6 +83,78 @@ Artifact SHA-256:
 - Reward v2 trajectories:
   `cc8329a01b349f23fd2c9cf056398430e179827b1d5aaa6d0213cf5a10d37de2`.
 
+## Zero-shot MuSiQue 2/3/4-hop Transfer
+
+The HotpotQA-trained policies were evaluated without MuSiQue fine-tuning on a
+balanced 300-example slice of the official MuSiQue-Answerable development set:
+100 examples each at 2, 3, and 4 hops. Every example retains its local
+20-passage candidate collection. The three policies used the same seed-42
+sampling protocol and a longer interaction budget suited to the deeper chains:
+
+- maximum 8 assistant turns;
+- maximum 6 executed searches;
+- deterministic top-1 BM25 retrieval;
+- 384-token observations;
+- 384 generated tokens per assistant turn;
+- temperature 0.8 and top-p 0.95.
+
+### Overall transfer results
+
+| Method | EM | F1 | Task reward | Completion | Invalid action | Searches | Multi-search | Turns |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Qwen3-8B Base | 9.33% | 17.19% | 0.1326 | 98.00% | 7.05% | 1.917 | 66.00% | 3.120 |
+| Vanilla GRPO, step 62 | **16.33%** | **26.22%** | **0.2128** | **99.67%** | **0.09%** | 2.657 | **97.00%** | 3.660 |
+| Reward v2, step 62 | 13.33% | 22.18% | 0.1776 | **99.67%** | 0.72% | 2.233 | 90.67% | 3.253 |
+
+Vanilla GRPO transfers best overall: relative to Base it gains 7.00 EM and
+9.03 F1 percentage points, increases multi-search by 31.00 points, and nearly
+eliminates invalid actions. Reward v2 also improves over Base but remains below
+task-only GRPO, while using 0.423 fewer searches per episode than Vanilla.
+
+### Results by required hop count
+
+| Required hops | Method | EM | F1 | Task reward | Searches | Multi-search | Completion | Invalid action |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 2 | Base | 20.00% | 30.30% | 0.2515 | 1.480 | 45.00% | 97.00% | 13.12% |
+| 2 | Vanilla GRPO | **37.00%** | **48.99%** | **0.4299** | 2.060 | **92.00%** | **100%** | **0.33%** |
+| 2 | Reward v2 | 32.00% | 45.05% | 0.3853 | 1.800 | 78.00% | 99.00% | 2.45% |
+| 3 | Base | **3.00%** | 6.12% | 0.0456 | 1.880 | 66.00% | 98.00% | 8.33% |
+| 3 | Vanilla GRPO | 2.00% | **6.63%** | 0.0431 | 2.830 | **100%** | **100%** | **0%** |
+| 3 | Reward v2 | 1.00% | 5.96% | 0.0348 | 2.290 | 99.00% | **100%** | **0%** |
+| 4 | Base | 5.00% | 15.14% | 0.1007 | 2.390 | 87.00% | 99.00% | 0.88% |
+| 4 | Vanilla GRPO | **10.00%** | **23.06%** | **0.1653** | 3.080 | **99.00%** | 99.00% | **0%** |
+| 4 | Reward v2 | 7.00% | 15.53% | 0.1126 | 2.610 | 95.00% | **100%** | **0%** |
+
+The improvement is concentrated in 2-hop questions and remains visible at
+4 hops. All three policies remain weak on the 3-hop subset. Because Vanilla
+uses only 2.66 searches on average despite a budget of 6, the 3-hop failure
+cannot be explained by the previous three-search cap alone. Query formulation,
+bridge-entity selection, and longer-horizon planning remain the main transfer
+bottlenecks.
+
+### Data and artifact provenance
+
+- MuSiQue train artifact: 2,000 rows (800 2-hop / 700 3-hop / 500 4-hop),
+  SHA-256 `0fd6f2d4fab0dcdad082d7d0bbe4c686bceeb87df241188f0ffa3450d2b4ff3f`;
+- MuSiQue evaluation artifact: 300 rows (100 per hop), SHA-256
+  `588ec4e05f2c1c50947e34dd122170b887496338f90d78d2a9eaf5a7a54b7354`;
+- Base trajectories / metrics / resolved config:
+  `3982e927ac54e996b237e053a9d0fdd8b59dbb54d2c9866a5807eff913e29ea4`,
+  `531a151f773161441f41bde3ded519bfe6430980f5ed1a3658ad5d71f777429f`,
+  `96fa837bd5c148b48fa5a39347bfe89fce567a1fda3a93445d0588e82a0eefe4`;
+- Vanilla GRPO trajectories / metrics / resolved config:
+  `f7b7039b63c323ad6e0397a3c9d007278ed2e09791c77f933e72f78ce785b6c0`,
+  `f26f01334c1e8a7eca211908785588dca8e4402340f176c1f665be39b6ebd647`,
+  `b6fdbf9e2d95c621de4c94414b439993e6be587e61d52bbd9ae7e0997239fb25`;
+- Reward v2 trajectories / metrics / resolved config:
+  `62d4032b86c87dbe884635438a181b08f6b5ea88f2ac50b47318238662bd020b`,
+  `91428605d8d7aa105d4a2051492f71997cf4c399b89624d14a3c900f32632236`,
+  `67c5cd8674edc90b8dfd76738c9b3c8152e0e3fd29724b36b909a3f2a53645fe`.
+
+These results measure zero-shot policy transfer across datasets under a local
+candidate-passage environment. They do not yet test MuSiQue-trained policies or
+retrieval from a shared global corpus.
+
 ## Interpretation
 
 - Base tends to stop after one search and under-retrieves for many bridge

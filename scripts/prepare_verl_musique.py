@@ -29,6 +29,12 @@ def parse_args() -> argparse.Namespace:
         type=int,
         help="Select this many examples for each requested hop count.",
     )
+    group.add_argument(
+        "--hop-limits",
+        type=int,
+        nargs="+",
+        help="Per-hop quotas aligned with --hops, for example 800 700 500.",
+    )
     parser.add_argument("--hops", type=int, nargs="+", choices=(2, 3, 4), default=(2, 3, 4))
     parser.add_argument(
         "--answerable-only",
@@ -46,6 +52,17 @@ def parse_args() -> argparse.Namespace:
 def select_examples(examples, args: argparse.Namespace):
     allowed = set(args.hops)
     filtered = [example for example in examples if example.hop_count in allowed]
+    if args.hop_limits is not None:
+        if len(args.hop_limits) != len(args.hops):
+            raise ValueError("hop-limits must contain one quota for every requested hop")
+        selected = []
+        for hops, limit in zip(args.hops, args.hop_limits, strict=True):
+            bucket = [example for example in filtered if example.hop_count == hops]
+            chunk = bucket[args.start_index : args.start_index + limit]
+            if len(chunk) != limit:
+                raise ValueError(f"requested range exceeds available {hops}-hop rows")
+            selected.extend(chunk)
+        return selected
     if args.per_hop_limit is not None:
         selected = []
         for hops in args.hops:
@@ -71,6 +88,8 @@ def main() -> None:
         raise ValueError("limit must be positive")
     if args.per_hop_limit is not None and args.per_hop_limit < 1:
         raise ValueError("per-hop-limit must be positive")
+    if args.hop_limits is not None and any(limit < 1 for limit in args.hop_limits):
+        raise ValueError("hop-limits must be positive")
     if (
         args.max_observation_tokens < 1
         or args.max_top_k < 1
@@ -120,6 +139,7 @@ def main() -> None:
         "rows": len(records),
         "hop_counts": dict(sorted(Counter(example.hop_count for example in selected).items())),
         "requested_hops": args.hops,
+        "requested_hop_limits": args.hop_limits,
         "answerable_only": args.answerable_only,
         "max_observation_tokens": args.max_observation_tokens,
         "max_top_k": args.max_top_k,

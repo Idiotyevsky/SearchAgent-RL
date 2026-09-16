@@ -123,7 +123,7 @@ support-hit count of task-only GRPO.
 - Project-local assistant-only DAPO reward manager uses the response mask for
   generated-token length and logs assistant length, total trajectory length,
   penalty, and search count.
-- 108 unit/integration tests passed in the latest full validation.
+- The full unit/integration suite passes in the validated verl environment.
 
 ## MuSiQue-Local Adapter
 
@@ -134,13 +134,24 @@ support-hit count of task-only GRPO.
   round-tripping but remain outside model-visible prompts and observations.
 - Evaluation summaries are stratified by required hop count.
 - A separate task-only config preserves the original HotpotQA configs.
+- Training artifact prepared: 2,000 rows (800 2-hop / 700 3-hop / 500 4-hop),
+  SHA-256
+  `0fd6f2d4fab0dcdad082d7d0bbe4c686bceeb87df241188f0ffa3450d2b4ff3f`.
 - Balanced dev artifact prepared: 300 rows (100 each for 2/3/4-hop), 20
   passages per row, SHA-256
-  `2954e41fcabeaeec4549b84a8602796eef4f41b79cd03c56da248a657a348315`.
+  `588ec4e05f2c1c50947e34dd122170b887496338f90d78d2a9eaf5a7a54b7354`.
+- Zero-shot Base / Vanilla GRPO / Reward v2 evaluation completed with a common
+  8-turn, 6-search, top-1 BM25 budget.
+- Overall EM/F1: Base 9.33/17.19, Vanilla GRPO 16.33/26.22, Reward v2
+  13.33/22.18. Vanilla GRPO transfers best and reduces invalid actions from
+  7.05% to 0.09% while increasing multi-search from 66.0% to 97.0%.
+- The gain is strongest at 2 hops and remains visible at 4 hops. All policies
+  remain weak on the balanced 3-hop subset.
 
 ## Pending Experiment
 
-- Zero-shot MuSiQue-Local evaluation for Base, Vanilla GRPO, and Reward v2.
+- Candidate next experiment: MuSiQue-local GRPO training using the prepared
+  2,000-row curriculum.
 - Corrected DAPO with assistant-only overlong accounting.
 
 Do not attribute the Fresh DAPO collapse to overlong shaping until the
@@ -148,12 +159,11 @@ corrected ablation is finished and evaluated.
 
 ## Next Actions
 
-1. Materialize fingerprinted MuSiQue-Answerable train/dev parquet artifacts.
-2. Evaluate Base, Vanilla GRPO, and Reward v2 zero-shot by required hop depth
-   before any MuSiQue training.
-3. Only after the local-corpus study, introduce a shared cached retrieval index
+1. Decide whether to train the task-only MuSiQue-local GRPO recipe and compare
+   it with zero-shot transfer under the same balanced evaluation protocol.
+2. Only after the local-corpus study, introduce a shared cached retrieval index
    so hop depth and corpus scale remain separately attributable.
-4. Complete and evaluate corrected assistant-only DAPO when resources permit.
+3. Complete and evaluate corrected assistant-only DAPO when resources permit.
 
 ## Stable References
 

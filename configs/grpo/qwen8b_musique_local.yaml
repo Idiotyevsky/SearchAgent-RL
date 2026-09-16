@@ -19,7 +19,7 @@ data:
   train_batch_size: 32
   val_batch_size: 32
   max_prompt_length: 2048
-  max_response_length: 1024
+  max_response_length: 2048
   return_raw_chat: true
   filter_overlong_prompts: true
   filter_overlong_prompts_workers: 1
@@ -73,13 +73,13 @@ actor_rollout_ref:
     log_prob_max_token_len_per_gpu: 4096
     multi_turn:
       enable: true
-      max_assistant_turns: 5
-      max_user_turns: 5
+      max_assistant_turns: 8
+      max_user_turns: 8
       max_parallel_calls: 1
       max_tool_response_length: 2048
       tool_response_truncate_side: middle
       format: hermes
-      tool_config_path: ${oc.env:ETRL_ROOT}/configs/tool/hotpot_multi_turn.yaml
+      tool_config_path: ${oc.env:ETRL_ROOT}/configs/tool/musique_multi_turn.yaml
       tokenization_sanity_check_mode: strict
       use_inference_chat_template: false
     agent:

@@ -1,0 +1,26 @@
+tools:
+  - class_name: "efficienttool_rl.verl.search_tool.HotpotSearchTool"
+    config:
+      type: native
+      top_k: 1
+      max_top_k: 1
+      max_executed_search_calls: 6
+      max_observation_tokens: 384
+    tool_schema:
+      type: function
+      function:
+        name: search
+        description: Search the deterministic local MuSiQue passage collection for one evidence passage.
+        parameters:
+          type: object
+          properties:
+            query:
+              type: string
+              description: A concise query for one unresolved entity or fact.
+            top_k:
+              type: integer
+              description: Optional result count; this environment caps it at 1.
+              minimum: 1
+              maximum: 1
+          required:
+            - query

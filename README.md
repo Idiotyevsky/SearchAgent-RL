@@ -673,6 +673,21 @@ A separate task-only recipe is provided as
 Shared-corpus retrieval is intentionally a later stage so hop depth and corpus
 scale can be measured independently.
 
+Zero-shot transfer from HotpotQA training has been evaluated on a balanced
+300-example MuSiQue set with 100 examples at each of 2, 3, and 4 hops. The
+interaction budget was expanded uniformly to 8 assistant turns and 6 searches:
+
+| Policy | EM | F1 | Searches | Multi-search | Invalid action |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Qwen3-8B Base | 9.33% | 17.19% | 1.917 | 66.00% | 7.05% |
+| Vanilla GRPO, step 62 | **16.33%** | **26.22%** | 2.657 | **97.00%** | **0.09%** |
+| Reward v2, step 62 | 13.33% | 22.18% | 2.233 | 90.67% | 0.72% |
+
+Vanilla GRPO transfers best overall, with the clearest gain at 2 hops and a
+smaller gain at 4 hops. The 3-hop subset remains difficult for all three
+policies. See the [full generalization results](experiments/results.md#zero-shot-musique-234-hop-transfer)
+for per-hop metrics, protocol details, fingerprints, and artifact hashes.
+
 ---
 
 ## Development & Validation
