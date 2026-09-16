@@ -2,7 +2,8 @@
 
 ## Current Focus
 
-Recipe-level comparison and diagnosis for a Qwen3-8B multi-turn search agent.
+Recipe-level comparison and diagnosis for a Qwen3-8B multi-turn search agent,
+plus a controlled MuSiQue-Local 2/3/4-hop transfer extension.
 
 ```text
 Qwen3-8B Base
@@ -124,8 +125,22 @@ support-hit count of task-only GRPO.
   penalty, and search count.
 - 108 unit/integration tests passed in the latest full validation.
 
+## MuSiQue-Local Adapter
+
+- Official MuSiQue-Answerable JSONL loader implemented and checked against a
+  real public dev example.
+- Per-example 20-passage corpora reuse the existing deterministic BM25 tool.
+- Hop count, answer aliases, and supporting titles survive verl parquet
+  round-tripping but remain outside model-visible prompts and observations.
+- Evaluation summaries are stratified by required hop count.
+- A separate task-only config preserves the original HotpotQA configs.
+- Balanced dev artifact prepared: 300 rows (100 each for 2/3/4-hop), 20
+  passages per row, SHA-256
+  `2954e41fcabeaeec4549b84a8602796eef4f41b79cd03c56da248a657a348315`.
+
 ## Pending Experiment
 
+- Zero-shot MuSiQue-Local evaluation for Base, Vanilla GRPO, and Reward v2.
 - Corrected DAPO with assistant-only overlong accounting.
 
 Do not attribute the Fresh DAPO collapse to overlong shaping until the
@@ -133,8 +148,7 @@ corrected ablation is finished and evaluated.
 
 ## Next Actions
 
-1. Add a MuSiQue local-corpus adapter and stratified 2/3/4-hop evaluation
-   without changing the action protocol or retrieval backend.
+1. Materialize fingerprinted MuSiQue-Answerable train/dev parquet artifacts.
 2. Evaluate Base, Vanilla GRPO, and Reward v2 zero-shot by required hop depth
    before any MuSiQue training.
 3. Only after the local-corpus study, introduce a shared cached retrieval index

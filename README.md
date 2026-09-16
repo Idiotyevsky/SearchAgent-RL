@@ -642,6 +642,37 @@ python scripts/evaluate.py \
 Methods should be compared under identical search budgets and evaluation
 settings.
 
+### MuSiQue local-corpus adapter
+
+The original HotpotQA pipeline remains available unchanged. For longer
+2/3/4-hop chains, [official MuSiQue-Answerable JSONL](https://github.com/stonybrooknlp/musique)
+can be converted while retaining its per-example passage set:
+
+```bash
+python scripts/prepare_verl_musique.py \
+  --input /path/to/musique_ans_v1.0_train.jsonl \
+  --output "$ETRL_DATA_DIR/verl_musique_ans_train_2000.parquet" \
+  --split train \
+  --limit 2000
+
+python scripts/prepare_verl_musique.py \
+  --input /path/to/musique_ans_v1.0_dev.jsonl \
+  --output "$ETRL_DATA_DIR/verl_musique_ans_dev_300.parquet" \
+  --split dev \
+  --per-hop-limit 100
+```
+
+The adapter preserves hop count and answer aliases as evaluation metadata,
+keeps gold decomposition/support labels out of model-visible context, and
+reports evaluation metrics separately for 2-, 3-, and 4-hop examples. When
+different MuSiQue paragraphs share a title, stable paragraph-qualified labels
+keep evidence accounting document-unique without changing HotpotQA titles.
+
+A separate task-only recipe is provided as
+[`qwen8b_musique_local.yaml`](configs/grpo/qwen8b_musique_local.yaml).
+Shared-corpus retrieval is intentionally a later stage so hop depth and corpus
+scale can be measured independently.
+
 ---
 
 ## Development & Validation

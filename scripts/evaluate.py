@@ -20,7 +20,7 @@ from typing import Any
 from efficienttool_rl.agent import AgentConfig, AgentRunner
 from efficienttool_rl.data import load_verl_examples
 from efficienttool_rl.evaluation import (
-    answer_metrics,
+    answer_metrics_any,
     episode_search_usage,
     summarize_episodes,
 )
@@ -132,7 +132,7 @@ def _validate(args: argparse.Namespace) -> None:
         raise IsADirectoryError(args.output)
 
 
-def _metrics_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
+def _flat_metrics_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
     episodes = [record["trajectory"] for record in records]
     behavior = summarize_episodes(episodes)
     count = len(records)
@@ -148,6 +148,25 @@ def _metrics_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
         "avg_task_reward": sum(record["task_reward"] for record in records) / count,
         "multi_search_rate": multi_search / count,
     }
+
+
+def _metrics_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
+    summary = _flat_metrics_summary(records)
+    hop_counts = sorted(
+        {
+            record["hop_count"]
+            for record in records
+            if isinstance(record.get("hop_count"), int)
+        }
+    )
+    if hop_counts:
+        summary["by_hop"] = {
+            str(hops): _flat_metrics_summary(
+                [record for record in records if record.get("hop_count") == hops]
+            )
+            for hops in hop_counts
+        }
+    return summary
 
 
 def main() -> None:
@@ -209,13 +228,19 @@ def main() -> None:
                 if trajectory_id in existing:
                     continue
                 episode = runner.run(example.question, episode_id=trajectory_id)
-                scores = answer_metrics(episode.final_answer or "", example.answer)
+                scores = answer_metrics_any(
+                    episode.final_answer or "",
+                    (example.answer, *example.answer_aliases),
+                )
                 usage = episode_search_usage(episode, example.supporting_titles)
                 record: dict[str, Any] = {
                     "trajectory_id": trajectory_id,
                     "input": example.question,
                     "episode_id": episode.episode_id,
                     "reference_answer": example.answer,
+                    "reference_aliases": list(example.answer_aliases),
+                    "dataset_name": example.dataset_name,
+                    "hop_count": example.hop_count,
                     "task_reward": 0.5 * scores["exact_match"] + 0.5 * scores["f1"],
                     "exact_match": scores["exact_match"],
                     "f1": scores["f1"],

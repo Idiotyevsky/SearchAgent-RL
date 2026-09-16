@@ -1,15 +1,15 @@
-"""Convert normalized HotpotQA examples to verl RL records."""
+"""Convert normalized search examples to verl RL records."""
 
 from __future__ import annotations
 
 from typing import Any
 
-from ..data import HotpotExample
+from ..data import SearchExample
 from ..protocol import SYSTEM_PROMPT
 
 
 def to_verl_record(
-    example: HotpotExample,
+    example: SearchExample,
     *,
     index: int,
     max_observation_tokens: int = 512,
@@ -17,7 +17,7 @@ def to_verl_record(
     max_executed_search_calls: int = 3,
     data_source: str = "hotpotqa_distractor",
 ) -> dict[str, Any]:
-    """Create a JSON-serializable record with no answer in tool kwargs."""
+    """Create a JSON-serializable record with reward metadata kept model-hidden."""
     if max_observation_tokens < 1 or max_top_k < 1 or max_executed_search_calls < 0:
         raise ValueError("observation/top-k limits must be positive and search budget non-negative")
     passages = [{"title": passage.title, "text": passage.text} for passage in example.passages]
@@ -37,8 +37,11 @@ def to_verl_record(
             "question": example.question,
             "question_type": example.question_type,
             "level": example.level,
+            "dataset_name": example.dataset_name,
+            "hop_count": example.hop_count,
             # Evaluation-only metadata. It is not included in prompt or tool kwargs.
             "supporting_titles": list(example.supporting_titles),
+            "answer_aliases": list(example.answer_aliases),
             "need_tools_kwargs": True,
             "tools_kwargs": {
                 "search": {

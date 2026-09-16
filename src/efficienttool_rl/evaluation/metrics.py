@@ -38,6 +38,18 @@ def answer_metrics(prediction: str, reference: str) -> dict[str, float]:
     return {"exact_match": exact_match(prediction, reference), "f1": token_f1(prediction, reference)}
 
 
+def answer_metrics_any(prediction: str, references: Sequence[str]) -> dict[str, float]:
+    """Score against the best canonical answer or accepted alias."""
+    valid = [reference for reference in references if isinstance(reference, str) and reference]
+    if not valid:
+        raise ValueError("at least one non-empty reference answer is required")
+    scores = [answer_metrics(prediction, reference) for reference in valid]
+    return {
+        "exact_match": max(item["exact_match"] for item in scores),
+        "f1": max(item["f1"] for item in scores),
+    }
+
+
 def summarize_episodes(episodes: Sequence[Mapping[str, Any]]) -> dict[str, float | int]:
     """Aggregate behavior without treating non-completions as valid answers."""
     count = len(episodes)

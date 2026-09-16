@@ -3,32 +3,15 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-
-@dataclass(frozen=True)
-class Passage:
-    title: str
-    text: str
+from .schema import Passage, SearchExample
 
 
-@dataclass(frozen=True)
-class HotpotExample:
-    example_id: str
-    question: str
-    answer: str
-    passages: tuple[Passage, ...]
-    supporting_titles: tuple[str, ...]
-    split: str
-    question_type: str = "unknown"
-    level: str = "unknown"
+class HotpotExample(SearchExample):
+    """Normalized HotpotQA example; retained for API compatibility."""
 
-    @property
-    def type(self) -> str:
-        """Official HotpotQA metadata name, kept as a readable alias."""
-        return self.question_type
 
 
 def _required_string(item: dict[str, Any], key: str, index: int) -> str:
@@ -116,6 +99,7 @@ def load_hotpotqa(path: str | Path, split: str) -> list[HotpotExample]:
                 split=split,
                 question_type=_metadata_string(item, "type", index),
                 level=_metadata_string(item, "level", index),
+                dataset_name="hotpotqa",
             )
         )
     return examples

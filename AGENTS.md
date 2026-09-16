@@ -26,7 +26,8 @@ search agent:
 
 - Qwen3-8B policy;
 - Hotpot-MT Strict training environment;
-- Natural Bridge-Hard held-out evaluation;
+- Natural Bridge-Hard evaluation;
+- approved MuSiQue-Local 2/3/4-hop transfer extension;
 - deterministic per-trajectory BM25;
 - strict one-action protocol;
 - native verl/vLLM multi-turn rollouts;
